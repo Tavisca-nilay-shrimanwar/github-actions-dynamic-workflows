@@ -1,0 +1,119 @@
+env:
+  SSL_CERT_DIR: /etc/pki/tls/certs
+  workflow_file_name: dynamodb.backup.ondemand-vetjo82.yaml
+  account_nubmer: '1234567890'
+  table_name_for_backup: my-table
+  time_to_take_backup: '123'
+  restored_table_retention_days: '7'
+  dynamodb_restore_method: manual
+jobs:
+  hoist:
+    name: checks and validation
+    runs-on:
+    - poc-appdr
+    steps:
+    - if: github.event.restored_table_retention_days < 0 || github.event.inputs.restored_table_retention_days
+        > 7
+      name: Check retention days input
+      run: 'echo "The input restored_table_retention_days can only be between 0 and
+        7. Invalid input provided"
+
+        exit 1
+
+        '
+    - if: github.event.inputs.dynamodb_restore_method == 'Manual' && github.event.inputs.backup_arn
+        == ''
+      name: Check required input for ondemand manual restore
+      run: 'echo "The input backup_arn cannot be empty for dynamodb_restore_method
+        selected as ''Manual''"
+
+        exit 1
+
+        '
+    - if: github.event.inputs.dynamodb_restore_method == 'Pitrdate' && github.event.inputs.pitr_backup_date
+        == ''
+      name: Check required input for ondemand pitr restore
+      run: 'echo "The input pitr_backup_date cannot be empty for dynamodb_restore_method
+        selected as ''Pitrdate''"
+
+        exit 1
+
+        '
+  run-restore-ondemand:
+    env:
+      BackupArn: ${{ github.event.inputs.backup_arn }}
+      DynamoDBRestoreMethod: Manual
+    if: github.event.inputs.dynamodb_restore_method == 'Manual' && github.event.inputs.backup_arn
+      != ''
+    name: restore-ondemand-manual
+    needs: hoist
+    runs-on:
+    - poc-appdr
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Restore Dynamodb
+      run: python manual_run.py
+      working-directory: ./DynamoDB/src/restore
+    - env:
+        TableRetention: ${{ github.event.inputs.restored_table_retention_days }}
+      if: github.event.inputs.restored_table_retention_days > 0
+      name: Generate retention config
+      run: echo $TableRetention
+  run-restore-ondemand-pitr:
+    env:
+      DynamoDBRestoreMethod: pitr
+    if: github.event.inputs.dynamodb_restore_method == 'pitr'
+    name: restore-ondemand-pitr
+    needs: hoist
+    runs-on:
+    - poc-appdr
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Restore Dynamodb
+      run: python manual_run.py
+      working-directory: ./DynamoDB/src/restore
+    - env:
+        TableRetention: ${{ github.event.inputs.restored_table_retention_days }}
+      if: github.event.inputs.restored_table_retention_days > 0
+      name: Generate retention config
+      run: echo $TableRetention
+  run-restore-ondemand-pitrdate:
+    env:
+      DynamoDBRestoreMethod: Pitrdate
+      PITRBackupDate: ${{ github.event.inputs.pitr_backup_date }}
+    if: github.event.inputs.dynamodb_restore_method == 'Pitrdate' && github.event.inputs.pitr_backup_date
+      != ''
+    name: restore-ondemand-pitrdate
+    needs: hoist
+    runs-on:
+    - poc-appdr
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Restore Dynamodb
+      run: python manual_run.py
+      working-directory: ./DynamoDB/src/restore
+    - env:
+        TableRetention: ${{ github.event.inputs.restored_table_retention_days }}
+      if: github.event.inputs.restored_table_retention_days > 0
+      name: Generate retention config
+      run: echo $TableRetention
+name: dynamodb.backup.ondemand-vetjo82.yaml
+'on': workflow_dispatch
