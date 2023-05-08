@@ -11,14 +11,18 @@ import argparse
 config = configparser.ConfigParser()
 config.read('dynamodb.ini')
 parser = argparse.ArgumentParser()
+script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+workflow_dir_path = ".github/workflows"
 
 def setup_cmd_args():
     parser.add_argument("-o", "--operation", required=True,  help="valid values are 'backup' or 'restore' ")
     parser.add_argument("-t", "--type", required=True, help="valid values are 'ondemand' or 'scheduled' ")
     return vars(parser.parse_args())
 
-def read_and_update_workflow():
-    with open('workflow.yaml', 'r') as file:
+def read_and_update_workflow():   
+    abs_read_file_path = os.path.join(script_dir, f"{workflow_dir_path}/workflow.yaml")
+    
+    with open(abs_read_file_path, 'r') as file:
         workflow_json = yaml.safe_load(file)
         workflow_json["on"] = "workflow_dispatch"
         workflow_json["env"]["workflow_file_name"] = file_name
@@ -30,7 +34,9 @@ def read_and_update_workflow():
     return workflow_json
 
 def write_new_workflow_file(workflow_json):
-    with open(file_name, 'w') as file:
+    abs_write_file_path = os.path.join(script_dir, f"{workflow_dir_path}/{file_name}")
+    
+    with open(abs_write_file_path, 'w') as file:
         yaml.dump(workflow_json, file, sort_keys=False)
 
 
