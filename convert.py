@@ -14,10 +14,14 @@ parser = argparse.ArgumentParser()
 script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
 workflow_dir_path = ".github/workflows"
 
+
+
 def setup_cmd_args():
     parser.add_argument("-o", "--operation", required=True,  help="valid values are 'backup' or 'restore' ")
     parser.add_argument("-t", "--type", required=True, help="valid values are 'ondemand' or 'scheduled' ")
     return vars(parser.parse_args())
+
+
 
 def read_and_update_workflow():   
     abs_read_file_path = os.path.join(script_dir, f"{workflow_dir_path}/workflow.yaml")
@@ -33,11 +37,19 @@ def read_and_update_workflow():
         workflow_json["env"][key] = config[section][key]
     return workflow_json
 
+
+
 def write_new_workflow_file(workflow_json):
     abs_write_file_path = os.path.join(script_dir, f"{workflow_dir_path}/{file_name}")
     
+    # write to file
     with open(abs_write_file_path, 'w') as file:
         yaml.dump(workflow_json, file, sort_keys=False)
+    
+    # setup github actions output
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print(f"workflow_file_name={file_name}", file=fh)
+
 
 
 args = setup_cmd_args()

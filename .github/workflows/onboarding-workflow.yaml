@@ -5,6 +5,8 @@ permissions:
 jobs:
   generate-dynamic-workflow:
     runs-on: ubuntu-latest
+    outputs:
+      workflow_file_name: ${{ steps.generate-workflow.outputs.workflow_file_name }}
     steps:
       # Checkout the branch
       - name: checkout repository
@@ -23,6 +25,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Generate workflow
+        id: generate-workflow
         run: |
           python convert.py -o backup -t ondemand
 
@@ -38,3 +41,9 @@ jobs:
           git add .
           git commit -m "new workflow file created"
           git push origin main
+
+      - name: Print workflow file output
+        env:
+          OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
+        run: |
+          echo "$OUTPUT"
