@@ -39,7 +39,7 @@ jobs:
         run: |
           # Stage the file, commit and push
           git add .
-          git commit -m "new workflow file created"
+          git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
           git push origin main
 
       - name: Print workflow file output
