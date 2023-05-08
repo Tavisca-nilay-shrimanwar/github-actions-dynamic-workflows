@@ -3,12 +3,6 @@ name: hello-world
 env:
   SSL_CERT_DIR: /etc/pki/tls/certs
 jobs:
-  my-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: my-step-1
-        run: echo "Hello World!"
-
   mock-job:
     runs-on: ubuntu-latest
     steps:
@@ -19,6 +13,7 @@ jobs:
   
   rename-file:
     runs-on: ubuntu-latest
+    needs: mock-job
     steps:
       - name: my-step-3
         env:
