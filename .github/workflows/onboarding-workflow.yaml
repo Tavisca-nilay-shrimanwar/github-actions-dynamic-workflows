@@ -24,8 +24,7 @@ jobs:
 
       - name: Generate workflow
         run: |
-          # do some operation that changes a file in the git repo
-          date > ./.github/workflows/time.txt
+          python convert.py -o backup -t ondemand
 
       - name: setup git config
         run: |
@@ -36,6 +35,6 @@ jobs:
       - name: commit
         run: |
           # Stage the file, commit and push
-          git add ./.github/workflows/time.txt
-          git commit -m "new date commit"
+          git add .
+          git commit -m "new workflow file created"
           git push origin main
