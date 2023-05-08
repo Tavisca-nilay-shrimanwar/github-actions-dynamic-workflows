@@ -1,0 +1,32 @@
+name: dynamodb.backup.ondemand-xpqqi4s.yaml
+'on': workflow_dispatch
+env:
+  SSL_CERT_DIR: /etc/pki/tls/certs
+  workflow_file_name: dynamodb.backup.ondemand-xpqqi4s.yaml
+  account_nubmer: '1234567890'
+  table_name_for_backup: my-table
+  time_to_take_backup: '123'
+  restored_table_retention_days: '7'
+  dynamodb_restore_method: manual
+jobs:
+  my-job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: my-step-1
+      run: echo "Hello World!"
+  mock-job:
+    runs-on: ubuntu-latest
+    steps:
+    - name: my-step-2
+      run: 'echo "Mock job in progress"
+
+        sleep 30
+
+        '
+  rename-file:
+    runs-on: ubuntu-latest
+    steps:
+    - name: my-step-3
+      env:
+        OLD_FILE_NAME: ${{env.workflow_file_name}}
+      run: mv -f $OLD_FILE_NAME done.yaml
