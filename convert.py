@@ -24,7 +24,7 @@ def setup_cmd_args():
 
 
 def read_and_update_workflow():   
-    abs_read_file_path = os.path.join(script_dir, f"{workflow_dir_path}/workflow.yaml")
+    abs_read_file_path = os.path.join(script_dir, f"{workflow_dir_path}/base-backup-workflow.yaml")
     
     with open(abs_read_file_path, 'r') as file:
         workflow_json = yaml.safe_load(file)
