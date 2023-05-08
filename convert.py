@@ -29,6 +29,9 @@ def read_and_update_workflow():
     with open(abs_read_file_path, 'r') as file:
         workflow_json = yaml.safe_load(file)
         workflow_json["on"] = "workflow_dispatch"
+
+        if "env" not in workflow_json:
+            workflow_json["env"] = {} 
         workflow_json["env"]["workflow_file_name"] = file_name
         workflow_json["name"] = file_name
     

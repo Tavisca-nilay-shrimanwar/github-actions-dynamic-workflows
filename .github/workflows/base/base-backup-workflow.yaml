@@ -1,7 +1,5 @@
 name: base-backup-workflow
 "on": workflow_dispatch
-env:
-  SSL_CERT_DIR: /etc/pki/tls/certs
 jobs:
   mock-job:
     runs-on: ubuntu-latest
