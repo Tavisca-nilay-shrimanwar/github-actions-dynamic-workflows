@@ -6,7 +6,7 @@ name: qa.my-table-for-backuo-guigiuggiiup.restore.yaml
         type: string
         required: 'true'
   schedule:
-  - cron: '0 4,16 * * *'
+    - cron: '0 4,16 * * *'
 env:
   SSL_CERT_DIR: /etc/pki/tls/certs
   workflow_file_name: qa.my-table-for-backuo-guigiuggiiup.restore.yaml
