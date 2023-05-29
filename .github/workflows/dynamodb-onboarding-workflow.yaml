@@ -58,8 +58,8 @@ jobs:
       - name: Generate workflow
         id: generate-workflow
         env:
-          repository: {{inputs.repository}}
-          pat: {{inputs.repository_pat}}
+          repository: ${{inputs.repository}}
+          pat: ${{inputs.repository_pat}}
         run: |
           python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
 
