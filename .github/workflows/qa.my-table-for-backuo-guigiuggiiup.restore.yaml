@@ -4,7 +4,7 @@ name: qa.my-table-for-backuo-guigiuggiiup.restore.yaml
     inputs:
       pitr_backup_date:
         type: string
-        required: 'true'
+        required: true
   schedule:
     - cron: '0 4,16 * * *'
 env:
