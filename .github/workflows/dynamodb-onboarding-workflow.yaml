@@ -48,12 +48,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::928814396842:role/github-actions-restore-poc-role
-          role-duration-seconds: 900
-          aws-region: us-east-1
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     role-to-assume: arn:aws:iam::928814396842:role/github-actions-restore-poc-role
+      #     role-duration-seconds: 900
+      #     aws-region: us-east-1
 
       - name: Generate workflow
         id: generate-workflow
