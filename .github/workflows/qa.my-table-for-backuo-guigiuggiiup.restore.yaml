@@ -1,0 +1,70 @@
+name: qa.my-table-for-backuo-guigiuggiiup.restore.yaml
+'on':
+  workflow_dispatch:
+    inputs:
+      pitr_backup_date:
+        type: string
+        required: 'true'
+  schedule:
+  - cron: '0 4,16 * * *'
+env:
+  SSL_CERT_DIR: /etc/pki/tls/certs
+  workflow_file_name: qa.my-table-for-backuo-guigiuggiiup.restore.yaml
+  AwsAccount: '9876543210'
+  RegionName: us-east-1
+  TableNameForBackup: my-table-for-backuo-guigiuggiiup
+  DynamodbRestoreMethod: Pitrdate
+  RestoreFrequency: twice-a-day
+  RestoredTableRetentionDays: '1'
+  Environment: qa
+jobs:
+  run-restore-ondemand:
+    name: ${{ format('restore-ondemand-{0}', env.DynamodbRestoreMethod) }}
+    if: github.event_name == 'workflow_dispatch'
+    env:
+      DynamoDBRestoreMethod: env.DynamodbRestoreMethod
+      PITRBackupDate: ${{ github.event.inputs.pitr_backup_date || "" }}
+      BackupArn: ${{ github.event.inputs.backup_arn || "" }}
+    runs-on:
+    - $aws_account
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Restore Dynamodb
+      id: restore_step
+      working-directory: ./DynamoDB/src/restore
+      run: python manual_run.py
+    - name: Generate retention config
+      if: env.RestoredTableRetentionDays > 0
+      env:
+        TableRetention: ${{ env.RestoredTableRetentionDays }}
+        TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+      working-directory: ./DynamoDB/src/restore
+      run: python write_retention_config.py
+  run-restore-scheduled:
+    name: restore-scheduled
+    if: github.event_name != 'workflow_dispatch'
+    runs-on:
+    - $aws_account
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Restore Dynamodb
+      id: restore_step
+      working-directory: ./DynamoDB/src/restore
+      run: python schedule_run.py
+    - name: Generate retention config
+      env:
+        TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+      working-directory: ./DynamoDB/src/restore
+      run: python write_retention_config.py
