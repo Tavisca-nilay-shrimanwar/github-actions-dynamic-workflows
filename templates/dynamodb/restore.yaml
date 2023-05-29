@@ -1,0 +1,170 @@
+name: Base restore workflow 
+
+'on':
+  workflow_dispatch:
+
+env:
+  SSL_CERT_DIR: "/etc/pki/tls/certs"
+
+jobs:
+    run-restore-ondemand:
+        name: ${{ format('restore-ondemand-{0}', env.DynamodbRestoreMethod) }}
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          DynamoDBRestoreMethod: env.DynamodbRestoreMethod
+          PITRBackupDate: ${{ github.event.inputs.pitr_backup_date || "" }}
+          BackupArn: ${{ github.event.inputs.backup_arn || "" }}
+        runs-on:
+          - $aws_account
+        steps:
+
+          - name: Checkout code
+            uses: actions/checkout@v3
+            
+          - name: Setup Python
+            uses: actions/setup-python@v4
+            with:
+                python-version: 'pypy3.9'
+            
+          - run: pip3 install -r requirements.txt
+              
+          - name: Restore Dynamodb
+            id: restore_step
+            working-directory: ./DynamoDB/src/restore
+            run: python manual_run.py
+
+          - name: Generate retention config
+            if: env.RestoredTableRetentionDays > 0 
+            env:
+              TableRetention: ${{ env.RestoredTableRetentionDays }}
+              TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+            working-directory: ./DynamoDB/src/restore
+            run: python write_retention_config.py
+
+    # run-restore-ondemand-manual:
+    #     name: restore-ondemand-manual
+    #     needs: hoist
+    #     if: github.event_name == 'workflow_dispatch' && env.DynamodbRestoreMethod == 'Manual'
+    #     env:
+    #       DynamoDBRestoreMethod: "Manual"
+    #       BackupArn: ${{ github.event.inputs.backup_arn }}
+    #     runs-on:
+    #       - $aws_account
+    #     steps:
+
+    #       - name: Checkout code
+    #         uses: actions/checkout@v3
+            
+    #       - name: Setup Python
+    #         uses: actions/setup-python@v4
+    #         with:
+    #             python-version: 'pypy3.9'
+            
+    #       - run: pip3 install -r requirements.txt
+              
+    #       - name: Restore Dynamodb
+    #         id: restore_step
+    #         working-directory: ./DynamoDB/src/restore
+    #         run: python manual_run.py
+
+    #       - name: Generate retention config
+    #         if: env.RestoredTableRetentionDays > 0 
+    #         env:
+    #           TableRetention: ${{ env.RestoredTableRetentionDays }}
+    #           TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+    #         working-directory: ./DynamoDB/src/restore
+    #         run: python write_retention_config.py
+
+    # run-restore-ondemand-pitrdate:
+    #     name: restore-ondemand-pitrdate
+    #     needs: hoist
+    #     runs-on:
+    #       - $aws_account
+    #     if: github.event_name == 'workflow_dispatch' && env.DynamodbRestoreMethod == 'Pitrdate'
+    #     env:
+    #       DynamoDBRestoreMethod: "Pitrdate"
+    #       PITRBackupDate: ${{ github.event.inputs.pitr_backup_date }}
+    #     steps:
+
+    #       - name: Checkout code
+    #         uses: actions/checkout@v3
+            
+    #       - name: Setup Python
+    #         uses: actions/setup-python@v4
+    #         with:
+    #             python-version: 'pypy3.9'
+            
+    #       - run: pip3 install -r requirements.txt
+
+    #       - name: Restore Dynamodb
+    #         id: restore_step
+    #         working-directory: ./DynamoDB/src/restore
+    #         run: python manual_run.py
+
+    #       - name: Generate retention config
+    #         if: env.RestoredTableRetentionDays > 0
+    #         env:
+    #           TableRetention: ${{ github.event.inputs.restored_table_retention_days }}
+    #           TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+    #         working-directory: ./DynamoDB/src/restore
+    #         run: python write_retention_config.py
+
+    # run-restore-ondemand-pitr:
+    #     name: restore-ondemand-pitr
+    #     needs: hoist
+    #     runs-on:
+    #       - $aws_account
+    #     if: github.event_name == 'workflow_dispatch' && env.DynamodbRestoreMethod == 'PitrLatest'
+    #     env:
+    #       DynamoDBRestoreMethod: "Pitr"
+    #     steps:
+
+    #       - name: Checkout code
+    #         uses: actions/checkout@v3
+            
+    #       - name: Setup Python
+    #         uses: actions/setup-python@v4
+    #         with:
+    #             python-version: 'pypy3.9'
+            
+    #       - run: pip3 install -r requirements.txt
+                
+    #       - name: Restore Dynamodb
+    #         id: restore_step
+    #         working-directory: ./DynamoDB/src/restore
+    #         run: python manual_run.py
+
+    #       - name: Generate retention config
+    #         if: env.RestoredTableRetentionDays > 0
+    #         env:
+    #           TableRetention: ${{ github.event.inputs.restored_table_retention_days }}
+    #           TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+    #         working-directory: ./DynamoDB/src/restore
+    #         run: python write_retention_config.py
+
+    run-restore-scheduled:
+        name: restore-scheduled
+        if: github.event_name != 'workflow_dispatch'
+        runs-on:
+          - $aws_account
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v3
+          
+          - name: Setup Python
+            uses: actions/setup-python@v4
+            with:
+              python-version: 'pypy3.9'
+          
+          - run: pip3 install -r requirements.txt
+                
+          - name: Restore Dynamodb
+            id: restore_step
+            working-directory: ./DynamoDB/src/restore
+            run: python schedule_run.py
+
+          - name: Generate retention config
+            env:
+              TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+            working-directory: ./DynamoDB/src/restore
+            run: python write_retention_config.py

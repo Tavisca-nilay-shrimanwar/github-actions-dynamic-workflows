@@ -1,5 +1,29 @@
-name: Onboarding workflow
-on: workflow_dispatch
+name: Dynamic workflow generation
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        required: true
+        description: "Repository to commit the dynamic workflow. For example, taviscasolutions-poc/DB-Backup-Restore"
+        type: string
+      repository_pat:
+        required: true
+        description: "Github PAT token required to commit to the repository"
+        type: string
+      type_of_database:
+        required: true
+        type: choice
+        options:
+        - cassandra
+        - dynamodb
+        default: dynamodb
+      operation:
+        required: true
+        type: choice
+        options:
+        - backup
+        - restore
+        default: backup
 permissions:
   contents: write
 jobs:
@@ -24,10 +48,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::928814396842:role/github-actions-restore-poc-role
+          role-duration-seconds: 900
+          aws-region: us-east-1
+
       - name: Generate workflow
         id: generate-workflow
+        env:
+          repository: {{inputs.repository}}
+          pat: {{inputs.repository_pat}}
         run: |
-          python convert.py -o backup -t ondemand
+          python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
 
       - name: Setup git config
         run: |
