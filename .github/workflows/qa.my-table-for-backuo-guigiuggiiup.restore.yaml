@@ -2,9 +2,13 @@ name: qa.my-table-for-backuo-guigiuggiiup.restore.yaml
 'on':
   workflow_dispatch:
     inputs:
-      pitr_backup_date:
-        type: string
+      backup_arn:
+        type: choice
         required: true
+        options:
+        - arn1
+        - arn2
+        - arn3
   schedule:
   - cron: '0 4,16 * * *'
 env:
@@ -13,9 +17,9 @@ env:
   AwsAccount: '9876543210'
   RegionName: us-east-1
   TableNameForBackup: my-table-for-backuo-guigiuggiiup
-  DynamodbRestoreMethod: Pitrdate
+  DynamodbRestoreMethod: Manual
   RestoreFrequency: twice-a-day
-  RestoredTableRetentionDays: '1'
+  RestoredTableRetentionDays: '10'
   Environment: qa
 jobs:
   run-restore-ondemand:
