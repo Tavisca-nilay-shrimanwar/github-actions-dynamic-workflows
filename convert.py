@@ -90,7 +90,7 @@ if args['operation'] == 'restore':
             "inputs": {
                 "pitr_backup_date": {
                     "type": "string",
-                    "required": true
+                    "required": True
                 }
             }
         }
@@ -100,7 +100,7 @@ if args['operation'] == 'restore':
             "inputs": {
                 "backup_arn": {
                     "type": "choice",
-                    "required": true,
+                    "required": True,
                     "options": get_dynamodb_backup_arns(config[section]["TableNameForBackup"])
                 }
             }
