@@ -62,14 +62,14 @@ jobs:
         run: |
           python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
 
-      # - name: Commit and Push new workflow file
-      #   run: |
-      #     git config user.name "GitHub Actions Bot"
-      #     git config user.email "<>"
-      #     git pull origin main
-      #     git add .
-      #     git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
-      #     git push origin main
+      - name: Commit and Push new workflow file
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git pull origin main
+          git add .
+          git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
+          git push origin main
 
       - name: checkout remote repo
         uses: actions/checkout@v3
@@ -78,18 +78,18 @@ jobs:
           token: ${{inputs.repository_pat}}
           path: "remote"
 
-      - name: Move generated workflow file to remote repo
-        run: |
-          ls
-          mv -f ./.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}} ./remote/.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}}
-          cd remote
-          ls
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          git pull origin main
-          git add .
-          git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
-          git push origin main
+      # - name: Move generated workflow file to remote repo
+      #   run: |
+      #     ls
+      #     mv -f ./.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}} ./remote/.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}}
+      #     cd remote
+      #     ls
+      #     git config user.name "GitHub Actions Bot"
+      #     git config user.email "<>"
+      #     git pull origin main
+      #     git add .
+      #     git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
+      #     git push origin main
 
       - name: Print workflow file output
         env:
