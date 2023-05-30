@@ -32,9 +32,8 @@ jobs:
     outputs:
       workflow_file_name: ${{ steps.generate-workflow.outputs.workflow_file_name }}
     steps:
-      # Checkout the branch
       - name: checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           token: ${{secrets.GHPAT}} #required for github action to commit the file to workflow directory
 
@@ -63,15 +62,28 @@ jobs:
         run: |
           python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
 
-      - name: Setup git config
+      # - name: Commit and Push new workflow file
+      #   run: |
+      #     git config user.name "GitHub Actions Bot"
+      #     git config user.email "<>"
+      #     git pull origin main
+      #     git add .
+      #     git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
+      #     git push origin main
+
+      - name: checkout remote repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{inputs.repository}}
+          token: ${{inputs.repository_pat}}
+          path: "remote"
+
+      - name: Move generated workflow file to remote repo
         run: |
-          # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
+          mv -f ${{steps.generate-workflow.outputs.workflow_file_name}} remote/${{steps.generate-workflow.outputs.workflow_file_name}}
+          cd remote
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-
-      - name: Commit and Push new workflow file
-        run: |
-          # Stage the file, commit and push
           git pull origin main
           git add .
           git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
