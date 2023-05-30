@@ -81,7 +81,7 @@ jobs:
       - name: Move generated workflow file to remote repo
         run: |
           ls
-          mv -f ./github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}} ./remote/.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}}
+          mv -f ./.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}} ./remote/.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}}
           cd remote
           ls
           git config user.name "GitHub Actions Bot"
