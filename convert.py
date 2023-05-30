@@ -6,14 +6,18 @@ import base64
 from utils import SingleQuoted, setup_cmd_args, read_config, get_cron
 import boto3
 
-url = f"https://api.github.com/repos/{os.environ['repository']}/contents/dynamodb.ini"
+args = setup_cmd_args()
+repo = os.environ['repository']
+pat = os.environ['pat']
+url = f"https://api.github.com/repos/{repo}/contents/{args['database']}.ini"
+
 response = requests.get(
     url = url,
     verify = False,
     headers = {
         "X-GitHub-Api-Version": "2022-11-28",
         "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {os.environ['pat']}"
+        "Authorization": f"Bearer {pat}"
     }
 ).json()
 
@@ -22,7 +26,6 @@ config = read_config(content)
 
 script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
 commit_workflow_dir_path = ".github/workflows"
-args = setup_cmd_args()
 section = f"{args['database']}.{args['operation']}"
 base_workflow_dir_path = f"templates/{args['database']}" #".github/workflows"
 new_file_name = f"{config[section]['Environment']}.{config[section]['TableNameForBackup']}.{args['operation']}.yaml"
@@ -106,9 +109,9 @@ if args['operation'] == 'restore':
             }
         }
     
-    # if config[section]["RestoredTableRetentionDays"] < 0 or config[section]["RestoredTableRetentionDays"] > 7:
-    #     print("The input restored_table_retention_days can only be between 0 and 7. Invalid input provided.")
-    #     sys.exit(1)
+    if int(config[section]["RestoredTableRetentionDays"]) < 0 or int(config[section]["RestoredTableRetentionDays"]) > 7:
+        print("The input restored_table_retention_days can only be between 0 and 7. Invalid input provided.")
+        sys.exit(1)
 
 
 
