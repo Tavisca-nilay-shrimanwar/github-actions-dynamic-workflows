@@ -78,7 +78,7 @@ def write_new_workflow_file(workflow_json):
     
     # setup github actions output
     with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-        print(f"workflow_file_name={abs_write_file_path}", file=fh)
+        print(f"workflow_file_name={NEW_FILE_NAME}", file=fh)
 
 
 workflow_json = read_base_workflow()

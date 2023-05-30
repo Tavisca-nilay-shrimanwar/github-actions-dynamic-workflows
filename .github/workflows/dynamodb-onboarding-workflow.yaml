@@ -76,12 +76,12 @@ jobs:
         with:
           repository: ${{inputs.repository}}
           token: ${{inputs.repository_pat}}
-          path: "remote"
+          path: "/tmp/remote"
 
       - name: Move generated workflow file to remote repo
         run: |
-          mv -f ${{steps.generate-workflow.outputs.workflow_file_name}} remote/${{steps.generate-workflow.outputs.workflow_file_name}}
-          cd remote
+          mv -f ./github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}} /tmp/remote/.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}}
+          cd /tmp/remote
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git pull origin main
