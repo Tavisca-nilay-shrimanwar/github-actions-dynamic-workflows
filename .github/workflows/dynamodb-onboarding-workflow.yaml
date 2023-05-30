@@ -71,26 +71,6 @@ jobs:
           git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
           git push origin main
 
-      - name: checkout remote repo
-        uses: actions/checkout@v3
-        with:
-          repository: ${{inputs.repository}}
-          token: ${{inputs.repository_pat}}
-          path: "remote"
-
-      # - name: Move generated workflow file to remote repo
-      #   run: |
-      #     ls
-      #     mv -f ./.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}} ./remote/.github/workflows/${{steps.generate-workflow.outputs.workflow_file_name}}
-      #     cd remote
-      #     ls
-      #     git config user.name "GitHub Actions Bot"
-      #     git config user.email "<>"
-      #     git pull origin main
-      #     git add .
-      #     git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
-      #     git push origin main
-
       - name: Print workflow file output
         env:
           OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
