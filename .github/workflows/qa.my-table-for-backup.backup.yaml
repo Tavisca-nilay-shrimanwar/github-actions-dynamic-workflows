@@ -1,0 +1,47 @@
+name: qa.my-table-for-backup.backup.yaml
+'on':
+  workflow_dispatch: null
+  schedule:
+  - cron: '0 4,16 * * *'
+env:
+  SSL_CERT_DIR: /etc/pki/tls/certs
+  workflow_file_name: qa.my-table-for-backup.backup.yaml
+  AwsAccount: '1234567890'
+  RegionName: us-east-1
+  TableNameForBackup: my-table-for-backup
+  BackupRetentionPeriod: '20'
+  BackupFrequency: twice-a-day
+  Environment: qa
+jobs:
+  run-backup-ondemand:
+    name: backup-ondemand
+    if: github.event_name == 'workflow_dispatch'
+    runs-on:
+    - $aws_account
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Backup Dynamodb
+      working-directory: ./DynamoDB/src/backup
+      run: python run.py
+  run-backup-scheduled:
+    name: backup-scheduled
+    if: github.event_name != 'workflow_dispatch'
+    runs-on:
+    - $aws_account
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Backup Dynamodb
+      working-directory: ./DynamoDB/src/backup
+      run: python run.py
