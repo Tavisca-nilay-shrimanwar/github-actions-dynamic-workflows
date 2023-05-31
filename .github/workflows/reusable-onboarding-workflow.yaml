@@ -32,6 +32,7 @@ on:
         # default: backup
 permissions:
   contents: write
+  id-token: write
 jobs:
   generate-dynamic-workflow:
     runs-on: ubuntu-latest
