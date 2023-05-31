@@ -10,6 +10,10 @@ on:
         required: true
         description: "PAT to fetch config from repository"
         type: string
+      token:
+        required: true
+        description: "token"
+        type: string
       type_of_database:
         required: true
         description: "Database"
@@ -37,7 +41,7 @@ jobs:
       - name: checkout repository
         uses: actions/checkout@v3
         with:
-          token: ${{secrets.GHPAT}} #required for github action to commit the file to workflow directory
+          token: ${{inputs.token}} #required for github action to commit the file to workflow directory
 
       - name: Setup python
         uses: actions/setup-python@v4
