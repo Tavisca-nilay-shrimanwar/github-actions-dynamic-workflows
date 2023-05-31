@@ -42,9 +42,6 @@ def read_base_workflow():
             workflow_json["env"] = {}
         workflow_json["env"]["workflow_file_name"] = NEW_FILE_NAME
 
-        # if workflow_json["on"]["workflow_dispatch"] is None:
-        #     workflow_json["on"]["workflow_dispatch"] = {}
-
         if "schedule" not in workflow_json["on"]:
             workflow_json["on"]["schedule"] = {}
     
@@ -88,7 +85,7 @@ if args['operation'] == 'backup':
 if args['operation'] == 'restore':
     workflow_json["on"]["schedule"] = [{"cron": SingleQuoted(get_cron(config[SECTION]["RestoreFrequency"])) }]
     
-    if config[SECTION]["DynamodbRestoreMethod"] == 'Pitrdate':
+    if config[SECTION]["DynamodbRestoreMethod"] in ['Pitrdate', 'pitrdate']:
         workflow_json["on"]["workflow_dispatch"] = {
             "inputs": {
                 "pitr_backup_date": {
@@ -98,7 +95,7 @@ if args['operation'] == 'restore':
             }
         }
 
-    if config[SECTION]["DynamodbRestoreMethod"] == 'Manual':
+    if config[SECTION]["DynamodbRestoreMethod"] in ['Manual', 'manual']:
         workflow_json["on"]["workflow_dispatch"] = {
             "inputs": {
                 "backup_arn": {
