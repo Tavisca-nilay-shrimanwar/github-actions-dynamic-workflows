@@ -6,10 +6,10 @@ on:
         required: true
         description: "Repository to commit the dynamic workflow. For example, taviscasolutions-poc/DB-Backup-Restore"
         type: string
-      repository_pat:
-        required: true
-        description: "Github PAT token required to commit to the repository"
-        type: string
+#       repository_pat:
+#         required: true
+#         description: "Github PAT token required to commit to the repository"
+#         type: string
       type_of_database:
         required: true
         type: choice
