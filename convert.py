@@ -54,14 +54,14 @@ def read_base_workflow():
 
 def get_dynamodb_backup_arns(table_name):
     client = boto3.client("dynamodb", region_name=config[SECTION]['RegionName'])
-    backup_arns = ["arn1", "arn2", "arn3"]
+    backup_arns = []
     
-    # response = client.list_backups(
-    #     TableName = table_name
-    # )
+    response = client.list_backups(
+        TableName = table_name
+    )
 
-    # for summary in response["BackupSummaries"]:
-    #     backup_arns.append(summary["BackupArn"])
+    for summary in response["BackupSummaries"]:
+        backup_arns.append(summary["BackupArn"])
 
     return backup_arns
 

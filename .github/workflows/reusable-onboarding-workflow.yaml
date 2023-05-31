@@ -74,11 +74,11 @@ jobs:
           git config user.email "<>"
           git pull origin main
           git add .
-          git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
+          git commit -m "New workflow file ${{steps.generate-workflow.outputs.workflow_file_name}} created by ${{inputs.repository}}"
           git push origin main
 
-      - name: Print workflow file output
-        env:
-          OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
-        run: |
-          echo "$OUTPUT"
+      # - name: Print workflow file output
+      #   env:
+      #     OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
+      #   run: |
+      #     echo "$OUTPUT"
