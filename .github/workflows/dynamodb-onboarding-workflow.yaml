@@ -4,7 +4,7 @@ on:
     inputs:
       repository:
         required: true
-        description: "Repository to commit the dynamic workflow. For example, taviscasolutions-poc/DB-Backup-Restore"
+        description: "Config file repository location. E.g. taviscasolutions-poc/DB-Backup-Restore"
         type: string
 #       repository_pat:
 #         required: true
@@ -12,6 +12,7 @@ on:
 #         type: string
       type_of_database:
         required: true
+        description: "Database"
         type: choice
         options:
         - cassandra
@@ -19,6 +20,7 @@ on:
         default: dynamodb
       operation:
         required: true
+        description: "Database operation"
         type: choice
         options:
         - backup
