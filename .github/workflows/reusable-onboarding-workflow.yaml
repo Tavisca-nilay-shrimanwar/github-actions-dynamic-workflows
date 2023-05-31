@@ -10,31 +10,19 @@ on:
         required: true
         description: "PAT to fetch config from repository"
         type: string
-      token:
-        required: true
-        description: "token"
-        type: string
       type_of_database:
         required: true
         description: "Database"
         type: string
-        # options:
-        # - cassandra
-        # - dynamodb
-        # default: dynamodb
       operation:
         required: true
         description: "Database operation"
         type: string
-        # options:
-        # - backup
-        # - restore
-        # default: backup
 permissions:
   contents: write
   id-token: write
 jobs:
-  generate-dynamic-workflow:
+  run-workflow-generator:
     runs-on: ubuntu-latest
     outputs:
       workflow_file_name: ${{ steps.generate-workflow.outputs.workflow_file_name }}
@@ -52,45 +40,45 @@ jobs:
           PAT=$(aws ssm get-parameter --name "github-actions-BnR-monorepo-pat" | jq -r '.Parameter.Value')
           echo "PAT=$PAT" >> $GITHUB_OUTPUT
       
-      - name: Print PAT
-        run: |
-          echo "The PAT is: ${{ steps.get-ssm-parameter.outputs.PAT }}"
+      # - name: Print PAT
+      #   run: |
+      #     echo "The PAT is: ${{ steps.get-ssm-parameter.outputs.PAT }}"
       
-      # - name: checkout repository
-      #   uses: actions/checkout@v3
-      #   with:
-      #     repository: "Tavisca-nilay-shrimanwar/github-actions-dynamic-workflows"
-      #     token: ${{inputs.token}} #required for github action to commit the file to workflow directory
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          repository: "Tavisca-nilay-shrimanwar/github-actions-dynamic-workflows"
+          token: ${{steps.get-ssm-parameter.outputs.PAT}} #required for github action to commit the file to workflow directory
 
-      # - name: Setup python
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: '3.11'
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-      # - name: Install python packages
-      #   run: |
-      #     python -m pip install --upgrade pip
-      #     pip install -r requirements.txt
+      - name: Install python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # - name: Generate workflow
-      #   id: generate-workflow
-      #   env:
-      #     repository: ${{inputs.repository}}
-      #     pat: ${{inputs.repository_pat}}
-      #   run: |
-      #     python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
+      - name: Generate workflow
+        id: generate-workflow
+        env:
+          repository: ${{inputs.repository}}
+          pat: ${{inputs.repository_pat}}
+        run: |
+          python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
 
-      # - name: Commit and Push new workflow file
-      #   run: |
-      #     git config user.name "GitHub Actions Bot"
-      #     git config user.email "<>"
-      #     git pull origin main
-      #     git add .
-      #     git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
-      #     git push origin main
+      - name: Commit and Push new workflow file
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git pull origin main
+          git add .
+          git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
+          git push origin main
 
-      # - name: Print workflow file output
-      #   env:
-      #     OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
-      #   run: |
-      #     echo "$OUTPUT"
+      - name: Print workflow file output
+        env:
+          OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
+        run: |
+          echo "$OUTPUT"
