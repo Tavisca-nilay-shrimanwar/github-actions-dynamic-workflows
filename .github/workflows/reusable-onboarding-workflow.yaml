@@ -41,6 +41,7 @@ jobs:
       - name: checkout repository
         uses: actions/checkout@v3
         with:
+          repository: "Tavisca-nilay-shrimanwar/github-actions-dynamic-workflows"
           token: ${{inputs.token}} #required for github action to commit the file to workflow directory
 
       - name: Setup python
