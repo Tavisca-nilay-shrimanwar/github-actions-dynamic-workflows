@@ -38,48 +38,58 @@ jobs:
     outputs:
       workflow_file_name: ${{ steps.generate-workflow.outputs.workflow_file_name }}
     steps:
-      - name: checkout repository
-        uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          repository: "Tavisca-nilay-shrimanwar/github-actions-dynamic-workflows"
-          token: ${{inputs.token}} #required for github action to commit the file to workflow directory
+          role-to-assume: arn:aws:iam::928814396842:role/github-actions-restore-poc-role
+          role-duration-seconds: 900
+          aws-region: us-east-1
 
-      - name: Setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install python packages
+      - name: Get repository PAT from SSM
+        id: get-ssm-parameter
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
+          PAT=$(aws ssm get-parameter --name "github-actions-BnR-monorepo-pat" | jq -r '.Parameter.Value')
+          echo "PAT=$PAT" >> $GITHUB_OUTPUT
+      
+      - name: Print PAT
+        run: |
+          echo "The PAT is: ${{ steps.get-ssm-parameter.outputs.PAT }}"
+      
+      # - name: checkout repository
+      #   uses: actions/checkout@v3
       #   with:
-      #     role-to-assume: arn:aws:iam::928814396842:role/github-actions-restore-poc-role
-      #     role-duration-seconds: 900
-      #     aws-region: us-east-1
+      #     repository: "Tavisca-nilay-shrimanwar/github-actions-dynamic-workflows"
+      #     token: ${{inputs.token}} #required for github action to commit the file to workflow directory
 
-      - name: Generate workflow
-        id: generate-workflow
-        env:
-          repository: ${{inputs.repository}}
-          pat: ${{inputs.repository_pat}}
-        run: |
-          python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
+      # - name: Setup python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.11'
 
-      - name: Commit and Push new workflow file
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          git pull origin main
-          git add .
-          git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
-          git push origin main
+      # - name: Install python packages
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install -r requirements.txt
 
-      - name: Print workflow file output
-        env:
-          OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
-        run: |
-          echo "$OUTPUT"
+      # - name: Generate workflow
+      #   id: generate-workflow
+      #   env:
+      #     repository: ${{inputs.repository}}
+      #     pat: ${{inputs.repository_pat}}
+      #   run: |
+      #     python convert.py -d ${{inputs.type_of_database}} -o ${{inputs.operation}}
+
+      # - name: Commit and Push new workflow file
+      #   run: |
+      #     git config user.name "GitHub Actions Bot"
+      #     git config user.email "<>"
+      #     git pull origin main
+      #     git add .
+      #     git commit -m "new workflow file created - ${{steps.generate-workflow.outputs.workflow_file_name}}"
+      #     git push origin main
+
+      # - name: Print workflow file output
+      #   env:
+      #     OUTPUT: ${{steps.generate-workflow.outputs.workflow_file_name}}
+      #   run: |
+      #     echo "$OUTPUT"
