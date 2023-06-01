@@ -1,0 +1,85 @@
+name: prod.backup-poc-2.restore.yaml
+'on':
+  workflow_dispatch:
+    inputs:
+      backup_arn:
+        type: choice
+        required: true
+        description: Backup Arn
+        options:
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01684750855025-0eef7d95
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01684821739187-ba5ed774
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01684821933887-84c5b5fc
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01684901106104-1c74116d
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01684987524832-99b5a622
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685073954447-a4caeb9c
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685160301067-5858586a
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685246721853-41ef823b
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685333115432-53bc0c2f
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685419514223-f4a2c609
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685505912269-d0dc2790
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685507329173-889263ef
+        - arn:aws:dynamodb:us-east-1:928814396842:table/backup-poc-2/backup/01685592365050-b47cb3cd
+  schedule:
+  - cron: '0 4,16 * * *'
+env:
+  SSL_CERT_DIR: /etc/pki/tls/certs
+  workflow_file_name: prod.backup-poc-2.restore.yaml
+  AwsAccount: '9876543210'
+  RegionName: us-east-1
+  TableNameForBackup: backup-poc-2
+  DynamodbRestoreMethod: manual
+  RestoreFrequency: twice-a-day
+  RestoredTableRetentionDays: '1'
+  Environment: prod
+jobs:
+  run-restore-ondemand:
+    name: ${{ format('restore-ondemand-{0}', env.DynamodbRestoreMethod) }}
+    if: github.event_name == 'workflow_dispatch'
+    env:
+      DynamoDBRestoreMethod: env.DynamodbRestoreMethod
+      PITRBackupDate: ${{ github.event.inputs.pitr_backup_date || "" }}
+      BackupArn: ${{ github.event.inputs.backup_arn || "" }}
+    runs-on:
+    - $aws_account
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Restore Dynamodb
+      id: restore_step
+      working-directory: ./DynamoDB/src/restore
+      run: python manual_run.py
+    - name: Generate retention config
+      if: env.RestoredTableRetentionDays > 0
+      env:
+        TableRetention: ${{ env.RestoredTableRetentionDays }}
+        TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+      working-directory: ./DynamoDB/src/restore
+      run: python write_retention_config.py
+  run-restore-scheduled:
+    name: restore-scheduled
+    if: github.event_name != 'workflow_dispatch'
+    runs-on:
+    - $aws_account
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: pypy3.9
+    - run: pip3 install -r requirements.txt
+    - name: Restore Dynamodb
+      id: restore_step
+      working-directory: ./DynamoDB/src/restore
+      run: python schedule_run.py
+    - name: Generate retention config
+      env:
+        TargetTableName: ${{ steps.restore_step.outputs.TargetTableName }}
+      working-directory: ./DynamoDB/src/restore
+      run: python write_retention_config.py
